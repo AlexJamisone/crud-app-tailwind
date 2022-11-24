@@ -1,27 +1,37 @@
-import type { NextPage } from 'next';
-import Head from 'next/head';
-import Image from 'next/image';
-import { format } from 'path';
 import { useState } from 'react';
+import type { GetServerSideProps } from 'next';
+import { prisma } from '../lib/prisma';
+import { useRouter } from 'next/router';
 
 interface FormData {
 	title: string;
 	content: string;
 	id: string;
 }
+interface Notes {
+	notes: {
+		id: string;
+		title: string;
+		content: string;
+	}[];
+}
 
-const Home: NextPage = () => {
+const Home = ({ notes }: Notes) => {
 	const [form, setForm] = useState<FormData>({
 		title: '',
 		content: '',
 		id: '',
 	});
+	const router = useRouter()
 
 	//Helper function
 
 	const clearForm = () => {
 		setForm({ title: '', content: '', id: '' });
 	};
+	const refreshhData = () => {
+		router.replace(router.asPath)
+	}
 
 	//CRUD funcrion
 
@@ -33,8 +43,10 @@ const Home: NextPage = () => {
 					'Content-Type': 'application/json',
 				},
 				method: 'POST',
-			});
-			clearForm();
+			}).then(() => {
+				clearForm()
+				refreshhData()
+			})
 		} catch (error) {
 			console.log('Falure to create Note', error);
 		}
@@ -84,8 +96,37 @@ const Home: NextPage = () => {
 					Add +
 				</button>
 			</form>
+			<div className='w-auto min-w-[25%] max-w-min mt-20 mx-auto space-y-6 flex flex-col items-stretch'>
+				<ul>
+					{notes.map(note => (
+						<li key={note.id} className='border-b border-gray-600 p-2'>
+							<div className="flex justify-between">
+								<div className="flex-1">
+									<h3 className='font-bold'>{note.title}</h3>
+									<p className='text-sm'>{note.content}</p>
+								</div>
+							</div>
+						</li>
+					))}
+				</ul>
+			</div>
 		</div>
 	);
 };
 
 export default Home;
+
+export const getServerSideProps: GetServerSideProps = async () => {
+	const notes = await prisma?.note.findMany({
+		select: {
+			title: true,
+			id: true,
+			content: true,
+		},
+	});
+	return {
+		props: {
+			notes,
+		},
+	};
+};
