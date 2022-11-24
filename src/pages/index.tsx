@@ -52,6 +52,21 @@ const Home = ({ notes }: Notes) => {
 		}
 	};
 
+	const deleteNote = async (id: string) => {
+		try {
+			fetch(`http://localhost:3000/api/note/${id}`, {
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				method: 'DELETE'
+			}).then(() => {
+				refreshhData()
+			})
+		} catch (error) {
+			console.log('Error on deletNote func', error)
+		}
+	}
+
 	//Custom Handler
 
 	const handlerSubmit = async (data: FormData) => {
@@ -105,6 +120,7 @@ const Home = ({ notes }: Notes) => {
 									<h3 className='font-bold'>{note.title}</h3>
 									<p className='text-sm'>{note.content}</p>
 								</div>
+								<button onClick={() => deleteNote(note.id)} className='text-red-400 text-3xl'>&#10007;</button>
 							</div>
 						</li>
 					))}
