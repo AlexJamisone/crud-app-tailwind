@@ -22,7 +22,7 @@ const Home = ({ notes }: Notes) => {
 		content: '',
 		id: '',
 	});
-	const router = useRouter()
+	const router = useRouter();
 
 	//Helper function
 
@@ -30,8 +30,8 @@ const Home = ({ notes }: Notes) => {
 		setForm({ title: '', content: '', id: '' });
 	};
 	const refreshhData = () => {
-		router.replace(router.asPath)
-	}
+		router.replace(router.asPath);
+	};
 
 	//CRUD funcrion
 
@@ -44,9 +44,9 @@ const Home = ({ notes }: Notes) => {
 				},
 				method: 'POST',
 			}).then(() => {
-				clearForm()
-				refreshhData()
-			})
+				clearForm();
+				refreshhData();
+			});
 		} catch (error) {
 			console.log('Falure to create Note', error);
 		}
@@ -58,20 +58,41 @@ const Home = ({ notes }: Notes) => {
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				method: 'DELETE'
+				method: 'DELETE',
 			}).then(() => {
-				refreshhData()
-			})
+				refreshhData();
+			});
 		} catch (error) {
-			console.log('Error on deletNote func', error)
+			console.log('Error on deletNote func', error);
 		}
-	}
+	};
+
+	const updateNote = async (id: string, data: FormData) => {
+		try {
+			fetch(`http://localhost:3000/api/update/${id}`, {
+				body: JSON.stringify(data),
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				method: 'PUT',
+			}).then(() => {
+				clearForm();
+				refreshhData();
+			});
+		} catch (error) {
+			console.log(error);
+		}
+	};
 
 	//Custom Handler
 
 	const handlerSubmit = async (data: FormData) => {
 		try {
-			create(data);
+			if (data.id) {
+				updateNote(data.id, data);
+			} else {
+				create(data);
+			}
 		} catch (error) {
 			console.log(error);
 		}
@@ -79,7 +100,7 @@ const Home = ({ notes }: Notes) => {
 
 	return (
 		<div className="mt-10">
-			<h1 className="text-center font-bold text-2xl mt-4">Notes</h1>
+			<h1 className="text-center font-bold text-2xl my-4">Notes</h1>
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
@@ -108,19 +129,39 @@ const Home = ({ notes }: Notes) => {
 					type="submit"
 					className="bg-blue-500 text-white rounded p-1"
 				>
-					Add +
+					{form.id ? 'Save ✔' : 'Add +'} 
 				</button>
 			</form>
-			<div className='w-auto min-w-[25%] max-w-min mt-20 mx-auto space-y-6 flex flex-col items-stretch'>
+			<div className="w-auto min-w-[25%] max-w-min mt-20 mx-auto space-y-6 flex flex-col items-stretch">
 				<ul>
-					{notes.map(note => (
-						<li key={note.id} className='border-b border-gray-600 p-2'>
+					{notes.map((note) => (
+						<li
+							key={note.id}
+							className="border-b border-gray-600 p-2"
+						>
 							<div className="flex justify-between">
 								<div className="flex-1">
-									<h3 className='font-bold'>{note.title}</h3>
-									<p className='text-sm'>{note.content}</p>
+									<h3 className="font-bold">{note.title}</h3>
+									<p className="text-sm">{note.content}</p>
 								</div>
-								<button onClick={() => deleteNote(note.id)} className='text-red-400 text-3xl'>&#10007;</button>
+								<button
+									onClick={() =>
+										setForm({
+											title: note.title,
+											content: note.content,
+											id: note.id,
+										})
+									}
+									className="text-white text-1xl bg-cyan-500 rounded-2xl px-3 mr-3"
+								>
+									Edit
+								</button>
+								<button
+									onClick={() => deleteNote(note.id)}
+									className="text-red-400 text-3xl"
+								>
+									&#10007;
+								</button>
 							</div>
 						</li>
 					))}
